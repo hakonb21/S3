@@ -4,7 +4,7 @@ package s3;
 
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
-import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.StdDraw;
 
 public class KdTree {
     private Node root;
@@ -106,7 +106,29 @@ public class KdTree {
 
     // draw all of the points to standard draw
     public void draw() {
+        this.draw_recur(this.root, true);
 
+    }
+
+    public void draw_recur(Node node, boolean vertical) {
+        if (node != null) {
+            if (vertical) {
+                StdDraw.setPenRadius(0.01);
+                StdDraw.setPenColor(StdDraw.RED);
+                StdDraw.line(node.key.x(), node.rect.ymin(), node.key.x(), node.rect.ymax());
+            } else {
+                StdDraw.setPenRadius(0.01);
+                StdDraw.setPenColor(StdDraw.BLUE);
+                StdDraw.line(node.rect.xmin(), node.key.y(), node.rect.xmax(), node.key.y());
+            }
+
+            StdDraw.setPenRadius(0.01);
+            StdDraw.setPenColor(StdDraw.BLACK);
+            node.key.draw();
+
+            draw_recur(node.left, false);
+            draw_recur(node.right, false);
+        }
     }
 
     // all points in the set that are inside the rectangle
@@ -127,14 +149,12 @@ public class KdTree {
         Point2D a = new Point2D(0.3, 0.2);
         Point2D b = new Point2D(0.2, 0.3);
         Point2D d = new Point2D(0.7, 0.1);
-        tree.insert(a);
-        StdOut.println(tree.root.key.x());
-        tree.insert(b);
-        StdOut.println(tree.root.left.key.x());
         Point2D c = new Point2D(0.23, 0.45);
+        tree.insert(a);
+        tree.insert(b);
         tree.insert(c);
-        StdOut.println(tree.root.left.right.key.x());
-        StdOut.println(tree.contains(c));
+        tree.insert(d);
+        tree.draw();
 
     }
 }
