@@ -2,16 +2,14 @@ package s3;
 /*************************************************************************
  *************************************************************************/
 
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.Out;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
-
-import java.util.Arrays;
+import edu.princeton.cs.algs4.StdOut;
 
 public class KdTree {
     private Node root;
     private int size;
+    private RectHV initial_rect;
 
     // construct an empty set of points
     public class Node {
@@ -30,6 +28,7 @@ public class KdTree {
 
     public KdTree() {
         this.size = 0;
+        this.initial_rect = new RectHV(0, 0, 1, 1);
     }
 
     // is the set empty?
@@ -46,12 +45,33 @@ public class KdTree {
     public void insert(Point2D p) {
         if (this.contains(p))
             return;
-        this.root = insert_recursive();
+
+        this.root = insert_recursive(p, this.root, true, this.initial_rect);
 
     }
 
-    public Node insert_recursive(Point2D p, Node node, boolean vertical) {
-        return new Node(new Point2D(2, 2), new Point2D(2, 2))
+    public Node insert_recursive(Point2D p, Node node, boolean vertical, RectHV rect) {
+        if (node == null)
+            return new Node(p, rect);
+        if (vertical) {
+            if (p.x() < node.key.x()) {
+                rect = new RectHV(rect.xmin(), rect.ymin(), p.x(), rect.ymax());
+                node.left = insert_recursive(p, node.left, false, rect);
+            } else {
+                rect = new RectHV(p.x(), rect.ymin(), rect.xmax(), rect.ymax());
+                node.right = insert_recursive(p, node.right, false, rect);
+            }
+        }
+        if (!vertical) {
+            if (p.y() < node.key.y()) {
+                rect = new RectHV(rect.xmin(), rect.ymin(), rect.xmax(), p.y());
+                node.left = insert_recursive(p, node.left, true, rect);
+            } else {
+                rect = new RectHV(rect.xmin(), p.y(), rect.xmax(), rect.ymax());
+                node.right = insert_recursive(p, node.right, true, rect);
+            }
+        }
+        return node;
     }
 
 
@@ -87,57 +107,13 @@ public class KdTree {
      * Test client
      ******************************************************************************/
     public static void main(String[] args) {
-        In in = new In();
-        Out out = new Out();
-        int nrOfRecangles = in.readInt();
-        int nrOfPointsCont = in.readInt();
-        int nrOfPointsNear = in.readInt();
-        RectHV[] rectangles = new RectHV[nrOfRecangles];
-        Point2D[] pointsCont = new Point2D[nrOfPointsCont];
-        Point2D[] pointsNear = new Point2D[nrOfPointsNear];
-        for (int i = 0; i < nrOfRecangles; i++) {
-            rectangles[i] = new RectHV(in.readDouble(), in.readDouble(),
-                    in.readDouble(), in.readDouble());
-        }
-        for (int i = 0; i < nrOfPointsCont; i++) {
-            pointsCont[i] = new Point2D(in.readDouble(), in.readDouble());
-        }
-        for (int i = 0; i < nrOfPointsNear; i++) {
-            pointsNear[i] = new Point2D(in.readDouble(), in.readDouble());
-        }
-        KdTree set = new KdTree();
-        for (int i = 0; !in.isEmpty(); i++) {
-            double x = in.readDouble(), y = in.readDouble();
-            set.insert(new Point2D(x, y));
-        }
-        for (int i = 0; i < nrOfRecangles; i++) {
-            // Query on rectangle i, sort the result, and print
-            Iterable<Point2D> ptset = set.range(rectangles[i]);
-            int ptcount = 0;
-            for (Point2D p : ptset)
-                ptcount++;
-            Point2D[] ptarr = new Point2D[ptcount];
-            int j = 0;
-            for (Point2D p : ptset) {
-                ptarr[j] = p;
-                j++;
-            }
-            Arrays.sort(ptarr);
-            out.println("Inside rectangle " + (i + 1) + ":");
-            for (j = 0; j < ptcount; j++)
-                out.println(ptarr[j]);
-        }
-        out.println("Contain test:");
-        for (int i = 0; i < nrOfPointsCont; i++) {
-            out.println((i + 1) + ": " + set.contains(pointsCont[i]));
-        }
-
-        out.println("Nearest test:");
-        for (int i = 0; i < nrOfPointsNear; i++) {
-            out.println((i + 1) + ": " + set.nearest(pointsNear[i]));
-        }
-
-        out.println();
+        KdTree tree = new KdTree();
+        Point2D a = new Point2D(0.3, 0.2);
+        Point2D b = new Point2D(0.2, 0.3);
+        tree.insert(a);
+        StdOut.println(tree.root.key.x());
+        tree.insert(b);
+        StdOut.println(tree.root.left.key.x());
     }
 }
 
