@@ -47,6 +47,7 @@ public class KdTree {
             return;
 
         this.root = insert_recursive(p, this.root, true, this.initial_rect);
+        this.size++;
 
     }
 
@@ -77,16 +78,31 @@ public class KdTree {
 
     // does the set contain the point p?
     public boolean contains(Point2D p) {
-        return false;
+        return contains_recur(p, this.root, true);
     }
 
-    public boolean contains_recur_left() {
-        return true;
+    public boolean contains_recur(Point2D p, Node node, boolean vertical) {
+        if (node == null)
+            return false;
+        if (node.key.x() == p.x() && node.key.y() == p.y()) {
+            return true;
+        }
+        if (vertical) {
+            if (p.x() < node.key.x()) {
+                return this.contains_recur(p, node.left, false);
+            } else
+                return this.contains_recur(p, node.right, false);
+        } else if (!vertical) {
+            if (p.y() < node.key.y())
+                return this.contains_recur(p, node.left, true);
+            else
+                return this.contains_recur(p, node.right, true);
+
+        }
+        return false;
+
     }
 
-    public boolean contains_recur_right() {
-        return false;
-    }
 
     // draw all of the points to standard draw
     public void draw() {
@@ -110,10 +126,16 @@ public class KdTree {
         KdTree tree = new KdTree();
         Point2D a = new Point2D(0.3, 0.2);
         Point2D b = new Point2D(0.2, 0.3);
+        Point2D d = new Point2D(0.7, 0.1);
         tree.insert(a);
         StdOut.println(tree.root.key.x());
         tree.insert(b);
         StdOut.println(tree.root.left.key.x());
+        Point2D c = new Point2D(0.23, 0.45);
+        tree.insert(c);
+        StdOut.println(tree.root.left.right.key.x());
+        StdOut.println(tree.contains(c));
+
     }
 }
 
