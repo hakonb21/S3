@@ -106,11 +106,11 @@ public class KdTree {
 
     // draw all of the points to standard draw
     public void draw() {
-        this.draw_recur(this.root, true);
+        this.draw_recur(this.root, true, null);
 
     }
 
-    public void draw_recur(Node node, boolean vertical) {
+    public void draw_recur(Node node, boolean vertical, Node prev_node) {
         if (node != null) {
             if (vertical) {
                 StdDraw.setPenRadius(0.01);
@@ -119,15 +119,15 @@ public class KdTree {
             } else {
                 StdDraw.setPenRadius(0.01);
                 StdDraw.setPenColor(StdDraw.BLUE);
-                StdDraw.line(node.rect.xmin(), node.key.y(), node.rect.xmax(), node.key.y());
+                StdDraw.line(node.rect.xmax(), node.key.y(), node.rect.xmin(), node.key.y());
             }
 
             StdDraw.setPenRadius(0.01);
             StdDraw.setPenColor(StdDraw.BLACK);
             node.key.draw();
 
-            draw_recur(node.left, false);
-            draw_recur(node.right, false);
+            draw_recur(node.left, false, node);
+            draw_recur(node.right, false, node);
         }
     }
 
