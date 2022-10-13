@@ -6,6 +6,9 @@ import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.RectHV;
 import edu.princeton.cs.algs4.StdDraw;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class KdTree {
     private Node root;
     private int size;
@@ -56,19 +59,19 @@ public class KdTree {
             return new Node(p, rect);
         if (vertical) {
             if (p.x() < node.key.x()) {
-                rect = new RectHV(rect.xmin(), rect.ymin(), p.x(), rect.ymax());
+                rect = new RectHV(rect.xmin(), rect.ymin(), node.key.x(), rect.ymax());
                 node.left = insert_recursive(p, node.left, false, rect);
             } else {
-                rect = new RectHV(p.x(), rect.ymin(), rect.xmax(), rect.ymax());
+                rect = new RectHV(node.key.x(), rect.ymin(), rect.xmax(), rect.ymax());
                 node.right = insert_recursive(p, node.right, false, rect);
             }
         }
         if (!vertical) {
             if (p.y() < node.key.y()) {
-                rect = new RectHV(rect.xmin(), rect.ymin(), rect.xmax(), p.y());
+                rect = new RectHV(rect.xmin(), rect.ymin(), rect.xmax(), node.key.y());
                 node.left = insert_recursive(p, node.left, true, rect);
             } else {
-                rect = new RectHV(rect.xmin(), p.y(), rect.xmax(), rect.ymax());
+                rect = new RectHV(rect.xmin(), node.key.y(), rect.xmax(), rect.ymax());
                 node.right = insert_recursive(p, node.right, true, rect);
             }
         }
@@ -106,16 +109,17 @@ public class KdTree {
 
     // draw all of the points to standard draw
     public void draw() {
-        this.draw_recur(this.root, true, null);
+        this.draw_recur(this.root, true);
 
     }
 
-    public void draw_recur(Node node, boolean vertical, Node prev_node) {
+    public void draw_recur(Node node, boolean vertical) {
         if (node != null) {
             if (vertical) {
                 StdDraw.setPenRadius(0.01);
                 StdDraw.setPenColor(StdDraw.RED);
                 StdDraw.line(node.key.x(), node.rect.ymin(), node.key.x(), node.rect.ymax());
+
             } else {
                 StdDraw.setPenRadius(0.01);
                 StdDraw.setPenColor(StdDraw.BLUE);
@@ -126,35 +130,52 @@ public class KdTree {
             StdDraw.setPenColor(StdDraw.BLACK);
             node.key.draw();
 
-            draw_recur(node.left, false, node);
-            draw_recur(node.right, false, node);
+            draw_recur(node.left, false);
+            draw_recur(node.right, false);
         }
     }
 
+
     // all points in the set that are inside the rectangle
     public Iterable<Point2D> range(RectHV rect) {
-        return null;
+        List<Point2D> pointlis = new ArrayList<Point2D>();
+        return range_recur(rect, this.root, pointlis);
+    }
+
+    public List<Point2D> range_recur(RectHV rect, Node node, List<Point2D> lis) {
+        if (node == null)
+            return lis;
+        if (rect.intersects(node.rect)) {
+            if (rect.contains(node.key)) lis.add(node.key);
+            lis = range_recur(rect, node.left, lis);
+            lis = range_recur(rect, node.right, lis);
+        }
+        return lis;
     }
 
     // a nearest neighbor in the set to p; null if set is empty
     public Point2D nearest(Point2D p) {
-        return p;
+        Point2D a = new Point2D(Double.MAX_VALUE, Double.MAX_VALUE);
+        return nearest_recur(p, this.root, a);
+    }
+
+    public Point2D nearest_recur(Point2D p, Node node, Point2D closest_p) {
+        if (node == null)
+            return closest_p;
+        if (node.rect.distanceTo(p) >= p.distanceTo(closest_p))
+            return closest_p;
+        if (node.key.distanceTo(p) < node.key.distanceTo(closest_p))
+            closest_p = node.key;
+        closest_p = nearest_recur(p, node.left, closest_p);
+        closest_p = nearest_recur(p, node.right, closest_p);
+        return closest_p;
     }
 
     /*******************************************************************************
      * Test client
      ******************************************************************************/
     public static void main(String[] args) {
-        KdTree tree = new KdTree();
-        Point2D a = new Point2D(0.3, 0.2);
-        Point2D b = new Point2D(0.2, 0.3);
-        Point2D d = new Point2D(0.7, 0.1);
-        Point2D c = new Point2D(0.23, 0.45);
-        tree.insert(a);
-        tree.insert(b);
-        tree.insert(c);
-        tree.insert(d);
-        tree.draw();
+
 
     }
 }
